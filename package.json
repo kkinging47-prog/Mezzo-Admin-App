@@ -1,11 +1,11 @@
 {
   "name": "mezzo-maths-administrative-app",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && vite --host 0.0.0.0",
-    "build": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && vite build",
+    "dev": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && vite --host 0.0.0.0",
+    "build": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
