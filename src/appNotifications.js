@@ -6,6 +6,9 @@ const NOTIFICATION_OPT_IN_KEY = 'mezzo_maths_admin_notifications_v1'
 const LAST_NOTIFIED_KEY = 'mezzo_maths_admin_last_notified_update_v1'
 const APP_DATA_ID = 'main'
 
+let realtimeChannel = null
+let realtimeStarting = false
+
 function getClientId() {
   let id = localStorage.getItem(CLIENT_ID_KEY)
   if (!id) {
@@ -96,6 +99,7 @@ async function requestNotifications() {
       icon: appLogo(),
       tag: 'mezzo-admin-test'
     })
+    subscribeToSupabaseUpdates()
   } else {
     localStorage.setItem(NOTIFICATION_OPT_IN_KEY, 'disabled')
     alert('Notifications were not allowed. Enable notifications for this site in your browser settings to receive alerts.')
@@ -153,12 +157,18 @@ function injectNotificationButton() {
   refreshNotificationButton()
 }
 
-function subscribeToSupabaseUpdates() {
-  if (!hasSupabaseConfig || window.__mezzoRealtimeNotificationsStarted) return
-  window.__mezzoRealtimeNotificationsStarted = true
+async function subscribeToSupabaseUpdates() {
+  if (!hasSupabaseConfig || realtimeChannel || realtimeStarting) return
+  realtimeStarting = true
 
   try {
-    supabase
+    const { data } = await supabase.auth.getSession()
+    if (!data?.session) {
+      realtimeStarting = false
+      return
+    }
+
+    realtimeChannel = supabase
       .channel('mezzo-app-data-notifications')
       .on(
         'postgres_changes',
@@ -170,12 +180,16 @@ function subscribeToSupabaseUpdates() {
         }
       )
       .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.warn('Supabase realtime notifications channel error. Check realtime is enabled for public.app_data.')
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn('Supabase realtime notifications channel issue. Check realtime is enabled for public.app_data.')
+          realtimeChannel = null
         }
       })
   } catch (error) {
     console.warn('Could not start realtime notifications', error)
+    realtimeChannel = null
+  } finally {
+    realtimeStarting = false
   }
 }
 
@@ -183,6 +197,12 @@ function bootNotifications() {
   injectNotificationStyles()
   injectNotificationButton()
   subscribeToSupabaseUpdates()
+
+  if (hasSupabaseConfig) {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) subscribeToSupabaseUpdates()
+    })
+  }
 
   const observer = new MutationObserver(() => {
     injectNotificationButton()
