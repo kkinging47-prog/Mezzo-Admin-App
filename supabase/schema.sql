@@ -9,6 +9,16 @@ create table if not exists public.app_data (
 
 alter table public.app_data enable row level security;
 
+-- Required for realtime update notifications to include full row data.
+alter table public.app_data replica identity full;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.app_data;
+exception
+  when duplicate_object then null;
+end $$;
+
 drop policy if exists "Assigned app users can read app data" on public.app_data;
 drop policy if exists "Finance and super admins can update app data" on public.app_data;
 drop policy if exists "Super admins can insert app data" on public.app_data;
