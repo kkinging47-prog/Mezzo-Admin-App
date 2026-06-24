@@ -24,9 +24,9 @@ if (app.includes('const [loadingData, setLoadingData] = useState(hasSupabaseConf
 }
 
 const blockingQuery = `      const { data: row, error } = await supabase\n        .from('app_data')\n        .select('data')\n        .eq('id', APP_DATA_ID)\n        .maybeSingle()`
-const timeoutQuery = `      const { data: row, error } = await withTimeout(\n        supabase\n          .from('app_data')\n          .select('data')\n          .eq('id', APP_DATA_ID)\n          .maybeSingle(),\n        CLOUD_LOAD_TIMEOUT_MS,\n        'Supabase is taking longer than expected. Opening with saved local data while it syncs.'\n      )`
+const backgroundQuery = `      const cloudDataRequest = supabase\n        .from('app_data')\n        .select('data')\n        .eq('id', APP_DATA_ID)\n        .maybeSingle()\n\n      cloudDataRequest\n        .then(({ data: backgroundRow, error: backgroundError }) => {\n          if (!backgroundError && backgroundRow?.data) {\n            const backgroundData = normalizeData(backgroundRow.data)\n            setData(backgroundData)\n            localStorage.setItem(STORAGE_KEY, JSON.stringify(backgroundData))\n            setSyncError('')\n          }\n        })\n        .catch((backgroundError) => console.warn('Background Supabase sync was delayed', backgroundError))\n\n      const { data: row, error } = await withTimeout(\n        cloudDataRequest,\n        CLOUD_LOAD_TIMEOUT_MS,\n        'Supabase is taking longer than expected. Opening with saved local data while it syncs.'\n      )`
 if (app.includes(blockingQuery)) {
-  app = app.replace(blockingQuery, timeoutQuery)
+  app = app.replace(blockingQuery, backgroundQuery)
   appChanged = true
 }
 
