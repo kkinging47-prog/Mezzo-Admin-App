@@ -310,8 +310,18 @@ if (document.readyState === 'loading') {`
     logoChanged = true
   }
 
-  if (logo.includes('loadLogoFromSupabase()')) {
-    logo = logo.replace('loadLogoFromSupabase()', '// Cloud logo is loaded through cached app settings to avoid freezing Settings.')
+  const oldCloudLogoCall = `
+  loadLogoFromSupabase()
+`
+  if (logo.includes(oldCloudLogoCall)) {
+    logo = logo.replace(oldCloudLogoCall, `
+  // Cloud logo is loaded through cached app settings to avoid freezing Settings.
+`)
+    logoChanged = true
+  }
+
+  if (logo.includes('async function // Cloud logo')) {
+    logo = logo.replace(/async function \/\/ Cloud logo[^\n]*\n\s*\{/g, 'async function loadLogoFromSupabase() {')
     logoChanged = true
   }
 
