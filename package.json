@@ -1,11 +1,11 @@
 {
   "name": "mezzo-maths-administrative-app",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && node scripts/patch-country-documents.mjs && node scripts/patch-finance-v2.mjs && node scripts/patch-finance-v2-fix.mjs && node scripts/patch-horizontal-layout.mjs && vite --host 0.0.0.0",
-    "build": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && node scripts/patch-country-documents.mjs && node scripts/patch-finance-v2.mjs && node scripts/patch-finance-v2-fix.mjs && node scripts/patch-horizontal-layout.mjs && vite build",
+    "dev": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && node scripts/patch-country-documents.mjs && node scripts/patch-finance-v2.mjs && node scripts/patch-finance-v2-fix.mjs && node scripts/patch-horizontal-layout.mjs && node scripts/patch-left-sidebar-settings.mjs && vite --host 0.0.0.0",
+    "build": "node scripts/patch-app.mjs && node scripts/patch-app-more.mjs && node scripts/patch-fast-load.mjs && node scripts/patch-security-notifications.mjs && node scripts/patch-country-documents.mjs && node scripts/patch-finance-v2.mjs && node scripts/patch-finance-v2-fix.mjs && node scripts/patch-horizontal-layout.mjs && node scripts/patch-left-sidebar-settings.mjs && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
