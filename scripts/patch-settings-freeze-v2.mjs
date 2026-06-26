@@ -17,22 +17,14 @@ let app = read(appPath)
 let changed = false
 
 if (!app.includes('function readLogoFile')) {
-  app = app.replace(`function today() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function formatMoney`, `function today() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function readLogoFile(file, callback) {
+  app = app.replace(`function formatMoney(value, currency = 'GHS') {`, `function readLogoFile(file, callback) {
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => callback(String(reader.result || ''))
   reader.readAsDataURL(file)
 }
 
-function formatMoney`)
+function formatMoney(value, currency = 'GHS') {`)
   changed = true
 }
 
