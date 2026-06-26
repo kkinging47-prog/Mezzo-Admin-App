@@ -57,11 +57,8 @@ if (!app.includes('momoNumber')) {
   changed = true
 }
 
-if (app.includes(`schoolSalaryCreditAmount(schoolId, staffRecords = [])`) && app.includes('salaryBillDeductedAmount(staff)') && !app.includes('schoolSalaryDeductionMonths')) {
-  app = app.replace(`function salaryBillDeductedAmount(staff) {
-  if (staff?.paySource !== 'School' || !staff?.paidBySchoolId) return 0
-  return (staff.deductSalaryFromBill || 'Yes') === 'Yes' ? salarySchoolContribution(staff) : 0
-}`, `function schoolSalaryDeductionMonths(staff) { return Math.max(toNumber(staff.schoolDeductionMonths || 4), 1) }
+if (app.includes('salaryBillDeductedAmount(staff)') && !app.includes('function schoolSalaryDeductionMonths')) {
+  app = app.replace(/function salaryBillDeductedAmount\(staff\) \{[\s\S]*?\n\}/, `function schoolSalaryDeductionMonths(staff) { return Math.max(toNumber(staff.schoolDeductionMonths || 4), 1) }
 
 function salaryBillDeductedAmount(staff) {
   if (staff?.paySource !== 'School' || !staff?.paidBySchoolId) return 0
