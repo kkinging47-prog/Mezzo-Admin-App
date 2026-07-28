@@ -31,6 +31,11 @@ function MarketingPage({ data, updateData, currentUser }) {
   const [editingStoppedId, setEditingStoppedId] = useState(null)
   const currency = data.settings.currency || 'GHS'
 
+  function marketingStatusPill(status = 'Ongoing') {
+    const tone = status === 'Completed' ? 'success' : status === 'Rejected' ? 'danger' : 'warning'
+    return <span className={'pill ' + tone}>{status}</span>
+  }
+
   function saveMarketing(event) {
     event.preventDefault()
     const payload = { ...marketingForm, updatedAt: new Date().toISOString() }
@@ -126,7 +131,7 @@ function MarketingPage({ data, updateData, currentUser }) {
 
       <div className="panel dashboard-receivables-panel">
         <div className="panel-header"><div><p className="eyebrow">Marketing records</p><h3>Schools reached and discussion status</h3></div></div>
-        <ResponsiveTable columns={['School','Location','Contact','Led by','Status','Agreement reached','Action']} rows={(data.marketingRecords || []).map((item) => [<strong>{item.schoolName}</strong>, item.location || 'N/A', item.contactPerson || item.contactPhone || 'N/A', item.marketingLead || 'N/A', <span className={`pill ${item.discussionStatus === 'Completed' ? 'success' : item.discussionStatus === 'Rejected' ? 'danger' : 'warning'}`}>{item.discussionStatus}</span>, item.agreementReached || 'N/A', <div className="row-actions"><button onClick={() => editMarketing(item)}>Edit</button><button className="danger-link" onClick={() => deleteMarketing(item.id)}><Trash2 size={14}/></button></div>])} empty="No marketing records saved yet." />
+        <ResponsiveTable columns={['School','Location','Contact','Led by','Status','Agreement reached','Action']} rows={(data.marketingRecords || []).map((item) => [<strong>{item.schoolName}</strong>, item.location || 'N/A', item.contactPerson || item.contactPhone || 'N/A', item.marketingLead || 'N/A', marketingStatusPill(item.discussionStatus), item.agreementReached || 'N/A', <div className="row-actions"><button onClick={() => editMarketing(item)}>Edit</button><button className="danger-link" onClick={() => deleteMarketing(item.id)}><Trash2 size={14}/></button></div>])} empty="No marketing records saved yet." />
       </div>
 
       <div className="panel dashboard-receivables-panel">
