@@ -7,6 +7,16 @@ const write = (p, s) => fs.writeFileSync(p, s)
 let app = read(appPath)
 let changed = false
 
+function replaceInsideDashboard(source, transform) {
+  const start = source.indexOf('function Dashboard({ data, financials }) {')
+  const end = source.indexOf('\nfunction StatCard', start)
+  if (start < 0 || end < 0) return source
+  const before = source.slice(0, start)
+  const block = source.slice(start, end)
+  const after = source.slice(end)
+  return before + transform(block) + after
+}
+
 if (!app.includes('staffPortalFeed: Array.isArray(parsed.staffPortalFeed)')) {
   if (app.includes('stoppedSchools: Array.isArray(parsed.stoppedSchools) ? parsed.stoppedSchools : []')) {
     app = app.replace('stoppedSchools: Array.isArray(parsed.stoppedSchools) ? parsed.stoppedSchools : []', 'stoppedSchools: Array.isArray(parsed.stoppedSchools) ? parsed.stoppedSchools : [],\n    staffPortalFeed: Array.isArray(parsed.staffPortalFeed) ? parsed.staffPortalFeed : [],\n    staffPortalLastSync: parsed.staffPortalLastSync || \'\'')
@@ -74,10 +84,12 @@ function staffPortalFeedFromData(data = {}) {
   changed = true
 }
 
-if (app.includes('const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length') && !app.includes('dashboardTermOptions')) {
-  app = app.replace(
-    '  const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length\n  return (',
-    `  const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length
+app = replaceInsideDashboard(app, (dashboard) => {
+  let block = dashboard
+  if (block.includes('const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length') && !block.includes('dashboardTermOptions')) {
+    block = block.replace(
+      '  const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length\n  return (',
+      `  const weeklyFollowUps = weeklyMarketingRecords.filter((record) => Boolean(record.nextFollowUp)).length
   const currentAcademicYear = data.schools?.[0]?.academicYear || 'Current academic year'
   const currentTerm = data.schools?.[0]?.term || 'Current term'
   const dashboardTermOptions = [
@@ -88,28 +100,29 @@ if (app.includes('const weeklyFollowUps = weeklyMarketingRecords.filter((record)
   const selectedDashboardTerm = dashboardTermOptions.find((item) => item.key === dashboardTermKey) || dashboardTermOptions[0]
   const viewFinancials = selectedDashboardTerm?.archive ? dashboardArchiveFinancials(selectedDashboardTerm.archive, data) : financials
   return (`
-  )
-  changed = true
-}
-
-const financialReplacements = [
-  ['financials.totalStudents.toLocaleString()', 'viewFinancials.totalStudents.toLocaleString()'],
-  ['formatMoney(financials.totalExpected, currency)', 'formatMoney(viewFinancials.totalExpected, currency)'],
-  ['formatMoney(financials.totalPaid, currency)', 'formatMoney(viewFinancials.totalPaid, currency)'],
-  ['formatMoney(financials.remaining, currency)', 'formatMoney(viewFinancials.remaining, currency)'],
-  ['formatMoney(financials.estimatedBank, currency)', 'formatMoney(viewFinancials.estimatedBank, currency)'],
-  ['financials.estimatedBank >= 0', 'viewFinancials.estimatedBank >= 0'],
-  ['financials.totalBooks.toLocaleString()', 'viewFinancials.totalBooks.toLocaleString()'],
-  ['formatMoney(financials.totalExpenses + financials.totalPayroll, currency)', 'formatMoney(viewFinancials.totalExpenses + viewFinancials.totalPayroll, currency)'],
-  ['financials.owingSchools.length', 'viewFinancials.owingSchools.length'],
-  ['financials.owingSchools.map((school) => [', 'viewFinancials.owingSchools.map((school) => [']
-]
-for (const [from, to] of financialReplacements) {
-  if (app.includes(from)) {
-    app = app.replaceAll(from, to)
+    )
     changed = true
   }
-}
+  const financialReplacements = [
+    ['financials.totalStudents.toLocaleString()', 'viewFinancials.totalStudents.toLocaleString()'],
+    ['formatMoney(financials.totalExpected, currency)', 'formatMoney(viewFinancials.totalExpected, currency)'],
+    ['formatMoney(financials.totalPaid, currency)', 'formatMoney(viewFinancials.totalPaid, currency)'],
+    ['formatMoney(financials.remaining, currency)', 'formatMoney(viewFinancials.remaining, currency)'],
+    ['formatMoney(financials.estimatedBank, currency)', 'formatMoney(viewFinancials.estimatedBank, currency)'],
+    ['financials.estimatedBank >= 0', 'viewFinancials.estimatedBank >= 0'],
+    ['financials.totalBooks.toLocaleString()', 'viewFinancials.totalBooks.toLocaleString()'],
+    ['formatMoney(financials.totalExpenses + financials.totalPayroll, currency)', 'formatMoney(viewFinancials.totalExpenses + viewFinancials.totalPayroll, currency)'],
+    ['financials.owingSchools.length', 'viewFinancials.owingSchools.length'],
+    ['financials.owingSchools.map((school) => [', 'viewFinancials.owingSchools.map((school) => [']
+  ]
+  for (const [from, to] of financialReplacements) {
+    if (block.includes(from)) {
+      block = block.replaceAll(from, to)
+      changed = true
+    }
+  }
+  return block
+})
 
 if (!app.includes('dashboard-term-selector')) {
   app = app.replace(
